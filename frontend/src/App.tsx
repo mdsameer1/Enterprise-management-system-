@@ -1,18 +1,22 @@
-import { CssBaseline, ThemeProvider } from '@mui/material';
-import { BrowserRouter } from 'react-router-dom';
-import './App.css';
-import theme from './theme';
-import Router from './routes';
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { Box, CssBaseline } from '@mui/material'
+import Dashboard from './pages/Dashboard'
+import Login from './pages/Login'
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <>
       <CssBaseline />
-      <BrowserRouter>
-        <Router />
-      </BrowserRouter>
-    </ThemeProvider>
-  );
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </Router>
+    </>
+  )
 }
 
-export default App;
+export default App

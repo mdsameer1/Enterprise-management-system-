@@ -1,0 +1,34 @@
+# Backend
+backend/target/
+backend/.DS_Store
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/bin/
+backend/*.jar
+backend/*.log
+backend/application-local.properties
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
