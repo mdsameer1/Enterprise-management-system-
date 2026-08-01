@@ -1,22 +1,16 @@
 package com.enterprise.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-/**
- * AuditLog Entity
- * 
- * Tracks all user actions for compliance and security
- */
 @Entity
-@Table(name = "audit_logs", indexes = {
-        @Index(name = "idx_user_id", columnList = "user_id"),
-        @Index(name = "idx_action", columnList = "action"),
-        @Index(name = "idx_created_at", columnList = "created_at")
-})
+@Table(name = "audit_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,38 +21,38 @@ public class AuditLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "user_id")
+    private Long userId;
 
-    @Column(nullable = false, length = 50)
-    private String action; // CREATE, UPDATE, DELETE, VIEW, LOGIN
+    @Column(length = 100, nullable = false)
+    private String action;
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100, nullable = false)
     private String entityType;
 
-    @Column
+    @Column(name = "entity_id")
     private Long entityId;
 
-    @Column(columnDefinition = "TEXT")
-    private String oldValues;
+    @Column(length = 500)
+    private String description;
 
-    @Column(columnDefinition = "TEXT")
-    private String newValues;
+    @Column(name = "old_value", length = 1000)
+    private String oldValue;
 
-    @Column(length = 45)
+    @Column(name = "new_value", length = 1000)
+    private String newValue;
+
+    @Column(name = "ip_address", length = 45)
     private String ipAddress;
 
-    @Column(length = 500)
+    @Column(name = "user_agent", length = 500)
     private String userAgent;
 
-    @Column(length = 50)
-    private String status; // SUCCESS, FAILURE
+    @Column(name = "status", length = 50)
+    @Builder.Default
+    private String status = "SUCCESS"; // SUCCESS, FAILURE
 
-    @Column(columnDefinition = "TEXT")
-    private String remarks;
-
+    @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }

@@ -1,24 +1,19 @@
 package com.enterprise.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
-/**
- * Project Entity
- * 
- * Represents projects managed in the system
- */
 @Entity
-@Table(name = "projects", indexes = {
-        @Index(name = "idx_project_code", columnList = "projectCode", unique = true),
-        @Index(name = "idx_project_status", columnList = "status")
-})
+@Table(name = "projects")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,66 +24,52 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(unique = true, nullable = false)
     private String projectCode;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false)
     private String name;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 1000)
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "manager_id", nullable = false)
-    private Employee manager;
+    @Column(name = "start_date", nullable = false)
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    @Column(name = "project_manager_id")
+    private Long projectManagerId;
 
     @Column(length = 50)
-    @Enumerated(EnumType.STRING)
-    private ProjectStatus status; // PLANNING, ACTIVE, ON_HOLD, COMPLETED, CANCELLED
+    @Builder.Default
+    private String status = "ACTIVE"; // ACTIVE, ON_HOLD, COMPLETED, CANCELLED
 
-    @Column(nullable = false)
-    private String startDate;
+    @Column(length = 50)
+    private String priority; // HIGH, MEDIUM, LOW
 
-    @Column(nullable = false)
-    private String endDate;
-
-    @Column(nullable = false)
-    private String dueDate;
-
-    @Column(precision = 5, scale = 2)
+    @Column(name = "budget")
     private Double budget;
 
-    @Column(precision = 5, scale = 2)
-    private Double progress = 0.0;
+    @Column(name = "actual_cost")
+    private Double actualCost;
 
-    @Column(length = 50)
-    private String priority; // LOW, MEDIUM, HIGH, CRITICAL
+    @Column(name = "progress_percentage")
+    @Builder.Default
+    private Integer progressPercentage = 0;
+
+    @Column(name = "client_name")
+    private String clientName;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    private Set<Task> tasks = new HashSet<>();
+    private List<Task> tasks;
 
-    @ManyToMany
-    @JoinTable(name = "project_team",
-            joinColumns = @JoinColumn(name = "project_id"),
-            inverseJoinColumns = @JoinColumn(name = "employee_id"))
-    private Set<Employee> teamMembers = new HashSet<>();
-
+    @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     @UpdateTimestamp
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
-
-    @Version
-    private Long version;
-}
-
-enum ProjectStatus {
-    PLANNING,
-    ACTIVE,
-    ON_HOLD,
-    COMPLETED,
-    CANCELLED
 }

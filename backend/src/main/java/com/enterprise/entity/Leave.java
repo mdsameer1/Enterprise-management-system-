@@ -1,23 +1,18 @@
 package com.enterprise.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Leave Entity
- * 
- * Manages leave requests and approvals
- */
 @Entity
-@Table(name = "leaves", indexes = {
-        @Index(name = "idx_employee_leave", columnList = "employee_id, leave_year"),
-        @Index(name = "idx_leave_status", columnList = "status")
-})
+@Table(name = "leaves")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,63 +23,42 @@ public class Leave {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employee_id", nullable = false)
-    private Employee employee;
+    @Column(name = "employee_id", nullable = false)
+    private Long employeeId;
 
-    @Column(nullable = false)
+    @Column(length = 50, nullable = false)
+    private String leaveType; // ANNUAL, SICK, CASUAL, MATERNITY, PATERNITY
+
+    @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
-    @Column(nullable = false)
+    @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @Column(nullable = false)
-    private Integer numberOfDays;
+    @Column(name = "number_of_days")
+    private Double numberOfDays;
 
-    @Column(length = 50)
-    @Enumerated(EnumType.STRING)
-    private LeaveType leaveType; // CASUAL, SICK, EARNED, MATERNITY, PATERNITY, UNPAID
-
-    @Column(length = 50)
-    @Enumerated(EnumType.STRING)
-    private LeaveStatus status; // PENDING, APPROVED, REJECTED
-
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 1000)
     private String reason;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "approved_by")
-    private Employee approver;
+    @Column(length = 50)
+    @Builder.Default
+    private String status = "PENDING"; // PENDING, APPROVED, REJECTED, CANCELLED
 
-    @Column(columnDefinition = "TEXT")
-    private String approvalRemark;
+    @Column(name = "approved_by_id")
+    private Long approvedById;
 
-    @Column(nullable = false)
-    private Integer leaveYear;
+    @Column(name = "approval_date")
+    private LocalDate approvalDate;
 
+    @Column(length = 500)
+    private String remarks;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     @UpdateTimestamp
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
-
-    @Version
-    private Long version;
-}
-
-enum LeaveType {
-    CASUAL,
-    SICK,
-    EARNED,
-    MATERNITY,
-    PATERNITY,
-    UNPAID
-}
-
-enum LeaveStatus {
-    PENDING,
-    APPROVED,
-    REJECTED
 }

@@ -1,7 +1,10 @@
 package com.enterprise.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -9,18 +12,8 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * User Entity
- * 
- * Represents a system user with authentication and role information
- * Roles: ADMIN, HR, MANAGER, EMPLOYEE
- */
 @Entity
-@Table(name = "users", indexes = {
-        @Index(name = "idx_email", columnList = "email", unique = true),
-        @Index(name = "idx_username", columnList = "username", unique = true),
-        @Index(name = "idx_role", columnList = "role")
-})
+@Table(name = "users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,63 +24,54 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 100)
-    private String username;
-
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(unique = true, nullable = false)
     private String email;
 
     @Column(nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRole role;
+    @Column(unique = true, nullable = false)
+    private String username;
+
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
 
     @Column(nullable = false)
-    private boolean enabled = false;
+    @Builder.Default
+    private Boolean enabled = true;
 
-    @Column(nullable = false)
-    private boolean locked = false;
+    @Column(name = "account_non_expired")
+    @Builder.Default
+    private Boolean accountNonExpired = true;
 
-    @Column(length = 500)
-    private String profilePictureUrl;
+    @Column(name = "account_non_locked")
+    @Builder.Default
+    private Boolean accountNonLocked = true;
 
-    @Column(length = 500)
-    private String phoneNumber;
+    @Column(name = "credentials_non_expired")
+    @Builder.Default
+    private Boolean credentialsNonExpired = true;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    @Builder.Default
+    private Set<String> roles = new HashSet<>();
+
+    @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     @UpdateTimestamp
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(nullable = false, updatable = false)
-    private String createdBy;
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
 
-    @Column(nullable = false)
-    private String updatedBy;
-
-    @Column(nullable = false)
-    private LocalDateTime lastLoginAt;
-
-    private LocalDateTime lastPasswordChangedAt;
-
-    @Version
-    private Long version;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Employee employee;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<RefreshToken> refreshTokens = new HashSet<>();
-}
-
-enum UserRole {
-    ADMIN,
-    HR,
-    MANAGER,
-    EMPLOYEE
 }

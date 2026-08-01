@@ -1,23 +1,18 @@
 package com.enterprise.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Employee Entity
- * 
- * Stores employee information linked to User account
- */
 @Entity
-@Table(name = "employees", indexes = {
-        @Index(name = "idx_employee_id", columnList = "employeeId", unique = true),
-        @Index(name = "idx_department_id", columnList = "department_id"),
-        @Index(name = "idx_manager_id", columnList = "manager_id")
-})
+@Table(name = "employees")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,86 +23,73 @@ public class Employee {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String employeeId;
-
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @Column(nullable = false, length = 100)
-    private String firstName;
+    @Column(name = "employee_code", unique = true, nullable = false)
+    private String employeeCode;
 
-    @Column(nullable = false, length = 100)
-    private String lastName;
-
-    @Column(length = 200)
-    private String designation;
-
-    @Column(length = 100)
-    private String department;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department_id")
-    private Department departmentEntity;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "manager_id")
-    private Employee manager;
-
-    @Column(length = 20)
-    private String phoneNumber;
-
-    @Column(length = 200)
-    private String address;
-
-    @Column(length = 50)
-    private String city;
-
-    @Column(length = 50)
-    private String state;
-
-    @Column(length = 10)
-    private String zipCode;
-
-    @Column(length = 100)
-    private String country;
-
-    @Column(length = 100)
-    private String dateOfBirth;
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
 
     @Column(length = 20)
     private String gender;
 
-    @Column(length = 50)
-    private String bloodGroup;
+    @Column(name = "phone_number")
+    private String phoneNumber;
 
-    @Column(length = 100)
-    private String panNumber;
+    @Column(name = "address")
+    private String address;
 
-    @Column(length = 100)
-    private String aadharNumber;
+    @Column(name = "city")
+    private String city;
 
-    @Column(nullable = false)
-    private String joinDate;
+    @Column(name = "state")
+    private String state;
 
-    @Column(length = 50)
-    private String employmentType; // Permanent, Contract, Intern
+    @Column(name = "country")
+    private String country;
 
-    @Column(precision = 10, scale = 2)
+    @Column(name = "postal_code")
+    private String postalCode;
+
+    @ManyToOne
+    @JoinColumn(name = "department_id")
+    private Department department;
+
+    @Column(name = "designation")
+    private String designation;
+
+    @Column(name = "joining_date")
+    private LocalDate joiningDate;
+
+    @Column(name = "reporting_manager_id")
+    private Long reportingManagerId;
+
+    @Column(name = "salary")
     private Double salary;
 
-    @Column(nullable = false)
-    private boolean active = true;
+    @Column(name = "employment_type", length = 50)
+    private String employmentType; // FULL_TIME, PART_TIME, CONTRACT
 
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private String status = "ACTIVE"; // ACTIVE, INACTIVE, ON_LEAVE
+
+    @Column(name = "is_manager")
+    @Builder.Default
+    private Boolean isManager = false;
+
+    @Column(name = "annual_leave_balance")
+    @Builder.Default
+    private Integer annualLeaveBalance = 20;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     @UpdateTimestamp
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
-
-    @Version
-    private Long version;
 }

@@ -1,23 +1,18 @@
 package com.enterprise.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Task Entity
- * 
- * Represents tasks within projects
- */
 @Entity
-@Table(name = "tasks", indexes = {
-        @Index(name = "idx_task_code", columnList = "taskCode", unique = true),
-        @Index(name = "idx_project_id", columnList = "project_id"),
-        @Index(name = "idx_assigned_to", columnList = "assigned_to_id")
-})
+@Table(name = "tasks")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,62 +23,57 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(unique = true, nullable = false)
     private String taskCode;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false)
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 1000)
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assigned_to_id")
-    private Employee assignedTo;
+    @Column(name = "assigned_to_id")
+    private Long assignedToId;
 
-    @Column(nullable = false)
-    private String startDate;
+    @Column(name = "created_by_id")
+    private Long createdById;
 
-    @Column(nullable = false)
-    private String dueDate;
+    @Column(name = "start_date")
+    private LocalDate startDate;
 
-    @Column(length = 50)
-    @Enumerated(EnumType.STRING)
-    private TaskStatus status; // TODO, IN_PROGRESS, IN_REVIEW, COMPLETED, BLOCKED
+    @Column(name = "due_date")
+    private LocalDate dueDate;
 
     @Column(length = 50)
-    private String priority; // LOW, MEDIUM, HIGH, CRITICAL
+    @Builder.Default
+    private String status = "TODO"; // TODO, IN_PROGRESS, IN_REVIEW, COMPLETED
 
-    @Column(precision = 5, scale = 2)
-    private Double progress = 0.0;
+    @Column(length = 50)
+    @Builder.Default
+    private String priority = "MEDIUM"; // HIGH, MEDIUM, LOW
 
-    @Column(length = 500)
-    private String comments;
+    @Column(name = "estimated_hours")
+    private Double estimatedHours;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_task_id")
-    private Task parentTask;
+    @Column(name = "actual_hours")
+    private Double actualHours;
 
+    @Column(name = "progress_percentage")
+    @Builder.Default
+    private Integer progressPercentage = 0;
+
+    @Column(name = "parent_task_id")
+    private Long parentTaskId;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     @UpdateTimestamp
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
-
-    @Version
-    private Long version;
-}
-
-enum TaskStatus {
-    TODO,
-    IN_PROGRESS,
-    IN_REVIEW,
-    COMPLETED,
-    BLOCKED
 }

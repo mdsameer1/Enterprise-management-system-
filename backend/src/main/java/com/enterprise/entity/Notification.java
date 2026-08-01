@@ -1,22 +1,16 @@
 package com.enterprise.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-/**
- * Notification Entity
- * 
- * Stores in-app notifications for users
- */
 @Entity
-@Table(name = "notifications", indexes = {
-        @Index(name = "idx_user_id", columnList = "user_id"),
-        @Index(name = "idx_read_status", columnList = "is_read")
-})
+@Table(name = "notifications")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,50 +21,36 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
-    @Column(nullable = false, length = 200)
+    @Column(length = 100, nullable = false)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(length = 1000)
     private String message;
 
     @Column(length = 50)
-    @Enumerated(EnumType.STRING)
-    private NotificationType notificationType; // TASK_ASSIGNED, LEAVE_APPROVED, etc
+    @Builder.Default
+    private String type = "INFO"; // INFO, WARNING, ERROR, SUCCESS
 
-    @Column(length = 50)
-    private String relatedEntity; // task, leave, employee, etc
+    @Column(name = "is_read")
+    @Builder.Default
+    private Boolean isRead = false;
 
-    @Column
-    private Long relatedEntityId;
+    @Column(name = "reference_type")
+    private String referenceType; // LEAVE, TASK, PROJECT, etc.
 
-    @Column(nullable = false)
-    private boolean isRead = false;
+    @Column(name = "reference_id")
+    private Long referenceId;
 
-    @Column(length = 50)
-    private String priority; // LOW, MEDIUM, HIGH
+    @Column(name = "action_url")
+    private String actionUrl;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-
-    @Version
-    private Long version;
-}
-
-enum NotificationType {
-    TASK_ASSIGNED,
-    TASK_COMPLETED,
-    LEAVE_APPROVED,
-    LEAVE_REJECTED,
-    PROJECT_UPDATED,
-    ATTENDANCE_MARKED,
-    SYSTEM_ALERT
+    @Column(name = "read_at")
+    private LocalDateTime readAt;
 }
