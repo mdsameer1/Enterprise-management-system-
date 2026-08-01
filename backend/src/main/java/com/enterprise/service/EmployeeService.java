@@ -1,195 +1,170 @@
 package com.enterprise.service;
 
 import com.enterprise.dto.EmployeeDTO;
-import com.enterprise.dto.PaginationDTO;
 import com.enterprise.entity.Employee;
 import com.enterprise.entity.User;
+import com.enterprise.exception.BadRequestException;
 import com.enterprise.exception.ResourceNotFoundException;
 import com.enterprise.repository.EmployeeRepository;
 import com.enterprise.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * Employee Service
- * 
- * Business logic for employee management
- */
 @Slf4j
 @Service
 @Transactional
 public class EmployeeService {
 
-    @Autowired
-    private EmployeeRepository employeeRepository;
+    private final EmployeeRepository employeeRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    /**
-     * Get all employees with pagination
-     */
-    public PaginationDTO<EmployeeDTO> getAllEmployees(Pageable pageable) {
-        log.info("Fetching all employees");
-        Page<Employee> employees = employeeRepository.findAll(pageable);
-        return mapToPageDTO(employees);
+    public EmployeeService(EmployeeRepository employeeRepository, UserRepository userRepository) {
+        this.employeeRepository = employeeRepository;
+        this.userRepository = userRepository;
     }
 
-    /**
-     * Get employee by ID
-     */
-    public EmployeeDTO getEmployeeById(Long id) {
-        log.info("Fetching employee with ID: {}", id);
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee", id));
-        return mapToDTO(employee);
-    }
-
-    /**
-     * Get employee by employee ID
-     */
-    public EmployeeDTO getEmployeeByEmployeeId(String employeeId) {
-        log.info("Fetching employee with employee ID: {}", employeeId);
-        Employee employee = employeeRepository.findByEmployeeId(employeeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee", "employeeId", employeeId));
-        return mapToDTO(employee);
-    }
-
-    /**
-     * Create new employee
-     */
     public EmployeeDTO createEmployee(EmployeeDTO employeeDTO) {
-        log.info("Creating new employee: {}", employeeDTO.getFirstName());
+        log.info("Creating new employee: {}", employeeDTO.getEmployeeCode());
+
+        if (employeeRepository.findByEmployeeCode(employeeDTO.getEmployeeCode()).isPresent()) {
+            throw new BadRequestException("Employee code already exists");
+        }
 
         User user = userRepository.findById(employeeDTO.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", employeeDTO.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Employee employee = Employee.builder()
-                .employeeId(generateEmployeeId())
                 .user(user)
-                .firstName(employeeDTO.getFirstName())
-                .lastName(employeeDTO.getLastName())
-                .designation(employeeDTO.getDesignation())
+                .employeeCode(employeeDTO.getEmployeeCode())
+                .dateOfBirth(employeeDTO.getDateOfBirth())
+                .gender(employeeDTO.getGender())
                 .phoneNumber(employeeDTO.getPhoneNumber())
                 .address(employeeDTO.getAddress())
                 .city(employeeDTO.getCity())
                 .state(employeeDTO.getState())
-                .zipCode(employeeDTO.getZipCode())
                 .country(employeeDTO.getCountry())
-                .dateOfBirth(employeeDTO.getDateOfBirth())
-                .gender(employeeDTO.getGender())
-                .bloodGroup(employeeDTO.getBloodGroup())
-                .panNumber(employeeDTO.getPanNumber())
-                .aadharNumber(employeeDTO.getAadharNumber())
-                .joinDate(employeeDTO.getJoinDate())
-                .employmentType(employeeDTO.getEmploymentType())
+                .postalCode(employeeDTO.getPostalCode())
+                .designation(employeeDTO.getDesignation())
+                .joiningDate(employeeDTO.getJoiningDate())
+                .reportingManagerId(employeeDTO.getReportingManagerId())
                 .salary(employeeDTO.getSalary())
-                .active(true)
+                .employmentType(employeeDTO.getEmploymentType())
+                .status("ACTIVE")
+                .isManager(employeeDTO.getIsManager() != null ? employeeDTO.getIsManager() : false)
+                .annualLeaveBalance(20)
+                .createdAt(LocalDateTime.now())
                 .build();
 
         employee = employeeRepository.save(employee);
-        log.info("Employee created successfully with ID: {}", employee.getId());
         return mapToDTO(employee);
     }
 
-    /**
-     * Update employee
-     */
     public EmployeeDTO updateEmployee(Long id, EmployeeDTO employeeDTO) {
-        log.info("Updating employee with ID: {}", id);
+        log.info("Updating employee: {}", id);
 
         Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
 
-        employee.setFirstName(employeeDTO.getFirstName());
-        employee.setLastName(employeeDTO.getLastName());
-        employee.setDesignation(employeeDTO.getDesignation());
-        employee.setPhoneNumber(employeeDTO.getPhoneNumber());
-        employee.setAddress(employeeDTO.getAddress());
-        employee.setCity(employeeDTO.getCity());
-        employee.setState(employeeDTO.getState());
-        employee.setZipCode(employeeDTO.getZipCode());
-        employee.setCountry(employeeDTO.getCountry());
-        employee.setDateOfBirth(employeeDTO.getDateOfBirth());
-        employee.setGender(employeeDTO.getGender());
-        employee.setBloodGroup(employeeDTO.getBloodGroup());
-        employee.setSalary(employeeDTO.getSalary());
+        if (employeeDTO.getPhoneNumber() != null) {
+            employee.setPhoneNumber(employeeDTO.getPhoneNumber());
+        }
+        if (employeeDTO.getAddress() != null) {
+            employee.setAddress(employeeDTO.getAddress());
+        }
+        if (employeeDTO.getCity() != null) {
+            employee.setCity(employeeDTO.getCity());
+        }
+        if (employeeDTO.getDesignation() != null) {
+            employee.setDesignation(employeeDTO.getDesignation());
+        }
+        if (employeeDTO.getSalary() != null) {
+            employee.setSalary(employeeDTO.getSalary());
+        }
+        if (employeeDTO.getStatus() != null) {
+            employee.setStatus(employeeDTO.getStatus());
+        }
+        if (employeeDTO.getReportingManagerId() != null) {
+            employee.setReportingManagerId(employeeDTO.getReportingManagerId());
+        }
 
+        employee.setUpdatedAt(LocalDateTime.now());
         employee = employeeRepository.save(employee);
-        log.info("Employee updated successfully with ID: {}", id);
         return mapToDTO(employee);
     }
 
-    /**
-     * Delete employee
-     */
-    public void deleteEmployee(Long id) {
-        log.info("Deleting employee with ID: {}", id);
+    public EmployeeDTO getEmployeeById(Long id) {
+        log.info("Fetching employee: {}", id);
         Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee", id));
-        employeeRepository.delete(employee);
-        log.info("Employee deleted successfully with ID: {}", id);
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+        return mapToDTO(employee);
     }
 
-    /**
-     * Generate unique employee ID
-     */
-    private String generateEmployeeId() {
-        return "EMP" + System.currentTimeMillis();
+    public EmployeeDTO getEmployeeByCode(String code) {
+        log.info("Fetching employee by code: {}", code);
+        Employee employee = employeeRepository.findByEmployeeCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+        return mapToDTO(employee);
     }
 
-    /**
-     * Map Employee entity to EmployeeDTO
-     */
+    public Page<EmployeeDTO> getAllEmployees(Pageable pageable) {
+        log.info("Fetching all employees");
+        return employeeRepository.findAll(pageable).map(this::mapToDTO);
+    }
+
+    public Page<EmployeeDTO> getEmployeesByDepartment(Long departmentId, Pageable pageable) {
+        log.info("Fetching employees by department: {}", departmentId);
+        return employeeRepository.findByDepartmentId(departmentId, pageable).map(this::mapToDTO);
+    }
+
+    public Page<EmployeeDTO> getEmployeesByStatus(String status, Pageable pageable) {
+        log.info("Fetching employees by status: {}", status);
+        return employeeRepository.findByStatus(status, pageable).map(this::mapToDTO);
+    }
+
+    public void deleteEmployee(Long id) {
+        log.info("Deleting employee: {}", id);
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+        employee.setStatus("INACTIVE");
+        employee.setUpdatedAt(LocalDateTime.now());
+        employeeRepository.save(employee);
+    }
+
     private EmployeeDTO mapToDTO(Employee employee) {
         return EmployeeDTO.builder()
                 .id(employee.getId())
-                .employeeId(employee.getEmployeeId())
                 .userId(employee.getUser().getId())
-                .firstName(employee.getFirstName())
-                .lastName(employee.getLastName())
-                .designation(employee.getDesignation())
-                .department(employee.getDepartment())
-                .departmentId(employee.getDepartmentEntity() != null ? employee.getDepartmentEntity().getId() : null)
-                .managerId(employee.getManager() != null ? employee.getManager().getId() : null)
+                .employeeCode(employee.getEmployeeCode())
+                .firstName(employee.getUser().getFirstName())
+                .lastName(employee.getUser().getLastName())
+                .email(employee.getUser().getEmail())
+                .dateOfBirth(employee.getDateOfBirth())
+                .gender(employee.getGender())
                 .phoneNumber(employee.getPhoneNumber())
                 .address(employee.getAddress())
                 .city(employee.getCity())
                 .state(employee.getState())
-                .zipCode(employee.getZipCode())
                 .country(employee.getCountry())
-                .dateOfBirth(employee.getDateOfBirth())
-                .gender(employee.getGender())
-                .bloodGroup(employee.getBloodGroup())
-                .panNumber(employee.getPanNumber())
-                .aadharNumber(employee.getAadharNumber())
-                .joinDate(employee.getJoinDate())
-                .employmentType(employee.getEmploymentType())
+                .postalCode(employee.getPostalCode())
+                .departmentId(employee.getDepartment() != null ? employee.getDepartment().getId() : null)
+                .departmentName(employee.getDepartment() != null ? employee.getDepartment().getName() : null)
+                .designation(employee.getDesignation())
+                .joiningDate(employee.getJoiningDate())
+                .reportingManagerId(employee.getReportingManagerId())
                 .salary(employee.getSalary())
-                .active(employee.isActive())
+                .employmentType(employee.getEmploymentType())
+                .status(employee.getStatus())
+                .isManager(employee.getIsManager())
+                .annualLeaveBalance(employee.getAnnualLeaveBalance())
                 .createdAt(employee.getCreatedAt())
                 .updatedAt(employee.getUpdatedAt())
-                .build();
-    }
-
-    /**
-     * Map Page<Employee> to PaginationDTO
-     */
-    private PaginationDTO<EmployeeDTO> mapToPageDTO(Page<Employee> page) {
-        return PaginationDTO.<EmployeeDTO>builder()
-                .content(page.getContent().stream().map(this::mapToDTO).toList())
-                .pageNumber(page.getNumber())
-                .pageSize(page.getSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
-                .hasNext(page.hasNext())
-                .hasPrevious(page.hasPrevious())
                 .build();
     }
 }
