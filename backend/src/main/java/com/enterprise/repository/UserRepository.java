@@ -6,15 +6,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-/**
- * User Repository
- * 
- * Data access operations for User entity
- */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByEmail(String email);
     Optional<User> findByUsername(String username);
-    boolean existsByEmail(String email);
-    boolean existsByUsername(String username);
+    Optional<User> findByEmail(String email);
+    Boolean existsByUsername(String username);
+    Boolean existsByEmail(String email);
 }

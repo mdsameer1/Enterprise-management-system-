@@ -1,7 +1,6 @@
 package com.enterprise.repository;
 
 import com.enterprise.entity.Task;
-import com.enterprise.entity.TaskStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,16 +9,13 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Task Repository
- * 
- * Data access operations for Task entity
- */
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
     Optional<Task> findByTaskCode(String taskCode);
-    Page<Task> findByProject_Id(Long projectId, Pageable pageable);
-    Page<Task> findByAssignedTo_Id(Long employeeId, Pageable pageable);
-    Page<Task> findByStatus(TaskStatus status, Pageable pageable);
-    List<Task> findByParentTask_Id(Long parentTaskId);
+    List<Task> findByProjectId(Long projectId);
+    Page<Task> findByProjectId(Long projectId, Pageable pageable);
+    List<Task> findByAssignedToId(Long assignedToId);
+    Page<Task> findByAssignedToId(Long assignedToId, Pageable pageable);
+    List<Task> findByStatus(String status);
+    Page<Task> findByStatus(String status, Pageable pageable);
 }
