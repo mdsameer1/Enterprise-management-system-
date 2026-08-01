@@ -1,102 +1,111 @@
 package com.enterprise.config;
 
-import com.enterprise.security.JwtAuthenticationFilter;
 import com.enterprise.security.JwtAuthenticationEntryPoint;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.enterprise.security.JwtAuthenticationFilter;
+import com.enterprise.security.JwtTokenProvider;
+import com.enterprise.security.CustomUserDetailsService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-/**
- * Spring Security Configuration
- * 
- * Responsibilities:
- * - JWT authentication setup
- * - Role-based access control
- * - Session management (stateless)
- * - Password encoding (BCrypt)
- * - CORS configuration
- */
+import java.util.Arrays;
+
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final CustomUserDetailsService customUserDetailsService;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    public SecurityConfig(JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+                         CustomUserDetailsService customUserDetailsService,
+                         JwtTokenProvider jwtTokenProvider) {
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.customUserDetailsService = customUserDetailsService;
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
-    @Autowired
-    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-
-    /**
-     * Configure password encoder using BCrypt
-     * Strength: 12 (default, provides good balance between security and performance)
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12);
+        return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Configure authentication manager
-     */
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder =
-                http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder
-                .userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder());
-        return authenticationManagerBuilder.build();
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(customUserDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
     }
 
-    /**
-     * Configure security filter chain
-     * 
-     * Public endpoints:
-     * - /api/auth/login
-     * - /api/auth/register
-     * - /api/auth/refresh
-     * - /api/auth/verify-email
-     * - /api/auth/forgot-password
-     * - /api/auth/reset-password
-     * - /swagger-ui.html
-     * - /actuator/health
-     */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .exceptionHandling(handling -> handling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorize -> authorize
-                        // Public endpoints
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh").permitAll()
-                        .requestMatchers("/api/auth/verify-email", "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
-                        .requestMatchers("/swagger-ui.html", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
-                        // Admin-only endpoints
-                        .requestMatchers(HttpMethod.DELETE, "/api/employees/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/departments/**").hasRole("ADMIN")
-                        .requestMatchers("/api/audit-logs/**").hasRole("ADMIN")
-                        // All other requests require authentication
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService);
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "https://yourfrontend.vercel.app"
+        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.cors()
+                .and()
+                .csrf().disable()
+                .exceptionHandling()
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-resources/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
