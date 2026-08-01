@@ -1,12 +1,12 @@
 package com.enterprise.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
-/**
- * Department DTO
- * Data Transfer Object for Department entity
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,13 +14,10 @@ import java.time.LocalDateTime;
 public class DepartmentDTO {
     private Long id;
     private String name;
-    private String code;
     private String description;
-    private Long managerId;
-    private String managerName;
-    private String location;
-    private boolean active;
+    private Long departmentHeadId;
+    private Double budget;
+    private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Integer employeeCount;
 }

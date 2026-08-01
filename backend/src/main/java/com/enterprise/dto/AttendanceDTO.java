@@ -1,13 +1,14 @@
 package com.enterprise.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
-/**
- * Attendance DTO
- * Data Transfer Object for Attendance entity
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,13 +18,10 @@ public class AttendanceDTO {
     private Long employeeId;
     private String employeeName;
     private LocalDate attendanceDate;
+    private LocalTime checkInTime;
+    private LocalTime checkOutTime;
     private String status;
-    private String checkInTime;
-    private String checkOutTime;
+    private Double workingHours;
     private String remarks;
-    private String workingHours;
-    private boolean approved;
-    private String approvedBy;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

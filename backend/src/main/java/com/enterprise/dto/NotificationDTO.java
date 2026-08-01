@@ -1,12 +1,12 @@
 package com.enterprise.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
-/**
- * Notification DTO
- * Data Transfer Object for Notification entity
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,11 +16,11 @@ public class NotificationDTO {
     private Long userId;
     private String title;
     private String message;
-    private String notificationType;
-    private String relatedEntity;
-    private Long relatedEntityId;
-    private boolean isRead;
-    private String priority;
+    private String type;
+    private Boolean isRead;
+    private String referenceType;
+    private Long referenceId;
+    private String actionUrl;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private LocalDateTime readAt;
 }

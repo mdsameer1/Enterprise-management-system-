@@ -1,12 +1,13 @@
 package com.enterprise.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Task DTO
- * Data Transfer Object for Task entity
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,12 +21,14 @@ public class TaskDTO {
     private String projectName;
     private Long assignedToId;
     private String assignedToName;
-    private String startDate;
-    private String dueDate;
+    private Long createdById;
+    private LocalDate startDate;
+    private LocalDate dueDate;
     private String status;
     private String priority;
-    private Double progress;
-    private String comments;
+    private Double estimatedHours;
+    private Double actualHours;
+    private Integer progressPercentage;
     private Long parentTaskId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

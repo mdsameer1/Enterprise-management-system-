@@ -1,12 +1,13 @@
 package com.enterprise.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Project DTO
- * Data Transfer Object for Project entity
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,17 +17,16 @@ public class ProjectDTO {
     private String projectCode;
     private String name;
     private String description;
-    private Long managerId;
-    private String managerName;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private Long projectManagerId;
+    private String projectManagerName;
     private String status;
-    private String startDate;
-    private String endDate;
-    private String dueDate;
-    private Double budget;
-    private Double progress;
     private String priority;
+    private Double budget;
+    private Double actualCost;
+    private Integer progressPercentage;
+    private String clientName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Integer taskCount;
-    private Integer teamMemberCount;
 }

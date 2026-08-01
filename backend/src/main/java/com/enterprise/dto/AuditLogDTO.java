@@ -6,21 +6,23 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserDTO {
+public class AuditLogDTO {
     private Long id;
-    private String email;
+    private Long userId;
     private String username;
-    private String firstName;
-    private String lastName;
-    private Boolean enabled;
-    private Set<String> roles;
+    private String action;
+    private String entityType;
+    private Long entityId;
+    private String description;
+    private String oldValue;
+    private String newValue;
+    private String ipAddress;
+    private String userAgent;
+    private String status;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime lastLogin;
 }

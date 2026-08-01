@@ -1,13 +1,13 @@
 package com.enterprise.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Leave DTO
- * Data Transfer Object for Leave entity
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,16 +16,16 @@ public class LeaveDTO {
     private Long id;
     private Long employeeId;
     private String employeeName;
+    private String leaveType;
     private LocalDate startDate;
     private LocalDate endDate;
-    private Integer numberOfDays;
-    private String leaveType;
-    private String status;
+    private Double numberOfDays;
     private String reason;
-    private Long approverIdId;
-    private String approverName;
-    private String approvalRemark;
-    private Integer leaveYear;
+    private String status;
+    private Long approvedById;
+    private String approvedByName;
+    private LocalDate approvalDate;
+    private String remarks;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
