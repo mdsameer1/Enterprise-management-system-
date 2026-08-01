@@ -1,19 +1,11 @@
 package com.enterprise.exception;
 
-import org.springframework.http.HttpStatus;
-
-/**
- * Unauthorized Exception
- * 
- * Thrown when user is not authenticated or authorized
- */
-public class UnauthorizedException extends BusinessException {
-
+public class UnauthorizedException extends RuntimeException {
     public UnauthorizedException(String message) {
-        super(message, "UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+        super(message);
     }
-
-    public UnauthorizedException() {
-        super("Unauthorized access", "UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+    
+    public UnauthorizedException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
