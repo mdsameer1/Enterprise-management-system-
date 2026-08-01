@@ -1,39 +1,38 @@
 package com.enterprise.security;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.enterprise.dto.ApiResponse;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-/**
- * Custom JWT Authentication Entry Point
- * 
- * Handles authentication errors when JWT is invalid or missing
- */
 @Slf4j
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
-    public void commence(HttpServletRequest httpServletRequest,
-                        HttpServletResponse httpServletResponse,
-                        AuthenticationException e) throws IOException, ServletException {
+    public void commence(HttpServletRequest request, HttpServletResponse response,
+                        AuthenticationException ex) throws IOException, ServletException {
+        log.error("Unauthorized error: {}", ex.getMessage());
 
-        log.error("Responding with unauthorized error. Message - {}", e.getMessage());
+        response.setContentType("application/json");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-        httpServletResponse.setContentType("application/json;charset=UTF-8");
-        httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        httpServletResponse.getWriter().write("{" +
-                "\"timestamp\":\"" + System.currentTimeMillis() + "\"" +
-                ",\"status\":401" +
-                ",\"error\":\"Unauthorized\"" +
-                ",\"message\":\"" + e.getMessage() + "\"" +
-                ",\"path\":\"" + httpServletRequest.getServletPath() + "\"" +
-                "}");
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .statusCode(HttpServletResponse.SC_UNAUTHORIZED)
+                .message("Unauthorized: " + ex.getMessage())
+                .success(false)
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
+                .build();
+
+        response.getWriter().write(new ObjectMapper().writeValueAsString(apiResponse));
     }
 }
